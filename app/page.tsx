@@ -29,6 +29,9 @@ interface ActiveBot {
   atr?: number;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:8000";
+
 export default function Home() {
   // --- State ---
   const [isOnline, setIsOnline] = useState<boolean>(false);
@@ -76,7 +79,7 @@ export default function Home() {
   // --- API Calls ---
   const fetchStatus = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/bot/status");
+      const res = await fetch(`${API_BASE_URL}/bot/status`);
       if (res.ok) {
         const data = await res.json();
         setBalance(data.balance);
@@ -94,7 +97,7 @@ export default function Home() {
 
   const fetchTickers = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/tickers");
+      const res = await fetch(`${API_BASE_URL}/tickers`);
       if (res.ok) {
         const data = await res.json();
         setTickers(data);
@@ -106,7 +109,7 @@ export default function Home() {
   const handleStartBot = async (targetSymbol: string) => {
     try {
       setLastError(null);
-      const res = await fetch("http://127.0.0.1:8000/bot/start", {
+      const res = await fetch(`${API_BASE_URL}/bot/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -129,7 +132,7 @@ export default function Home() {
   const handleStopBot = async (targetSymbol: string) => {
     try {
       setLastError(null);
-      const res = await fetch("http://127.0.0.1:8000/bot/stop", {
+      const res = await fetch(`${API_BASE_URL}/bot/stop`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol: targetSymbol })
@@ -150,7 +153,7 @@ export default function Home() {
         return;
       }
 
-      const res = await fetch("http://127.0.0.1:8000/bot/trade", {
+      const res = await fetch(`${API_BASE_URL}/bot/trade`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -176,7 +179,7 @@ export default function Home() {
 
   const handleClosePosition = async (p: any) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/bot/close_position", {
+      const res = await fetch(`${API_BASE_URL}/bot/close_position`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,7 +198,7 @@ export default function Home() {
 
   const fetchOrderBook = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/orderbook?symbol=${encodeURIComponent(symbol)}&limit=20`);
+      const res = await fetch(`${API_BASE_URL}/orderbook?symbol=${encodeURIComponent(symbol)}&limit=20`);
       if (res.ok) {
         const data = await res.json();
         setOrderBook(data);
@@ -205,7 +208,7 @@ export default function Home() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/history?symbol=${encodeURIComponent(symbol)}`);
+      const res = await fetch(`${API_BASE_URL}/history?symbol=${encodeURIComponent(symbol)}`);
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -225,7 +228,7 @@ export default function Home() {
 
   const fetchKlines = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
+      const res = await fetch(`${API_BASE_URL}/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
       if (res.ok) {
         const data = await res.json();
         setChartData(data);
@@ -256,7 +259,7 @@ export default function Home() {
 
     const connectWS = () => {
       console.log("Connecting WebSocket...");
-      const ws = new WebSocket("ws://127.0.0.1:8000/ws");
+      const ws = new WebSocket(`${WS_BASE_URL}/ws`);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {
