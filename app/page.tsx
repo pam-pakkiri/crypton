@@ -321,18 +321,26 @@ export default function Home() {
       }
     }, 300);
 
-    const intervalTimer = setInterval(() => {
+    // 5-second polling for status and updates
+    const pollTimer = setInterval(() => {
       fetchStatus();
-      fetchKlines(); // Poll for new candles
-      fetchHistory(); // Poll for new algo signals
+      fetchHistory();
     }, 5000);
 
     return () => {
-      clearInterval(intervalTimer);
+      clearInterval(pollTimer);
       clearInterval(throttleTimer);
       if (wsRef.current) wsRef.current.close();
     };
   }, []);
+
+  // Separate effect for kline polling to avoid stale symbol/interval
+  useEffect(() => {
+    const klineTimer = setInterval(() => {
+      fetchKlines();
+    }, 5000);
+    return () => clearInterval(klineTimer);
+  }, [symbol, interval]);
 
   const isBotRunning = (s: string) => activeBots.some(b => b.symbol === s);
 
@@ -608,10 +616,18 @@ export default function Home() {
                   <tbody className="text-[10px]">
                     {activeTab === 'positions' && positions.map((p, i) => {
                       // Find Active Orders for this position
-                      const pOrders = openOrders.filter(o => o.symbol === p.symbol);
-                      const slOrder = pOrders.find(o => o.type === 'STOP_MARKET');
-                      // TP often limit orders or TAKE_PROFIT
-                      const tpOrder = pOrders.find(o => o.type === 'LIMIT' || o.type === 'TAKE_PROFIT');
+                      const pOrders = openOrders.filter(o => {
+                        const oSym = o.symbol.replace('/', '');
+                        const pSym = p.symbol.replace('/', '');
+                        return oSym === pSym;
+                      });
+
+                      const slOrder = pOrders.find(o =>
+                        ['STOP_MARKET', 'STOP', 'STOP_LOSS', 'STOP_LOSS_LIMIT'].includes(o.type.toUpperCase())
+                      );
+                      const tpOrder = pOrders.find(o =>
+                        ['LIMIT', 'TAKE_PROFIT', 'TAKE_PROFIT_MARKET', 'TAKE_PROFIT_LIMIT'].includes(o.type.toUpperCase())
+                      );
 
                       const botInfo = activeBots.find(b => b.symbol.replace('/', '') === p.symbol); // API symbol often has / removed? Check this.
 
