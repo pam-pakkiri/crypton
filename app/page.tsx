@@ -208,7 +208,7 @@ export default function Home() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/history?symbol=${encodeURIComponent(symbol)}`);
+      const res = await fetch(`${API_BASE_URL}/history?symbol=all`);
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -654,7 +654,7 @@ export default function Home() {
                                 TP: {tpOrder ? parseFloat(tpOrder.price).toLocaleString() : '--'}
                               </span>
                               <span className="text-[#f6465d]" title="Stop Loss">
-                                SL: {slOrder ? parseFloat(slOrder.stopPrice).toLocaleString() : '--'}
+                                SL: {slOrder ? parseFloat(slOrder.stopPrice || slOrder.price).toLocaleString() : '--'}
                               </span>
                             </div>
                           </td>
@@ -670,7 +670,7 @@ export default function Home() {
                                 {p.unrealizedProfit >= 0 ? '+' : ''}{p.unrealizedProfit.toFixed(2)}
                               </span>
                               <span className={`text-[8px] ${p.unrealizedProfit >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                                ({(((p.unrealizedProfit / (Math.abs(p.size) / p.leverage))) * 100).toFixed(2)}%)
+                                ({(((p.unrealizedProfit / ((Math.abs(p.size) * p.entryPrice) / p.leverage))) * 100).toFixed(2)}%)
                               </span>
                             </div>
                           </td>
